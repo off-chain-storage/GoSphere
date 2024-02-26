@@ -15,6 +15,7 @@ pipeline {
             steps {
                 script {
                     sh """
+                        sh 'go version'
                         sh 'go build -o GoSphere ./cmd/GoSphere/main.go'
                     """
                 }
