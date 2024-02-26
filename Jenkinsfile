@@ -19,14 +19,14 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh 'docker image build -t jinbum99/GoSphere .'
+                sh 'docker image build -t jinbum99/gosphere .'
             }
         }
         stage('Push Docker Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'DOCKER_REGISTRY_CREDENTIALS_ID', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     sh "echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin"
-                    sh 'docker push jinbum99/GoSphere'
+                    sh 'docker push jinbum99/gosphere'
                 }
             }
         }
