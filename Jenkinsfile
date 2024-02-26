@@ -33,13 +33,9 @@ pipeline {
         /*
         stage('Deploy') {
             steps {
-                script {
-                    sh """
-                        cd var/jenkins_home/projecty/deploy
-                        chmod 777 ./deploy.sh
-                        ./deploy.sh
-                    """
-                }
+                sh 'cd var/jenkins_home/projecty/deploy'
+                sh 'chmod 777 ./deploy.sh'
+                sh './deploy.sh'
             }
         }
         */
