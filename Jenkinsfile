@@ -8,7 +8,7 @@ pipeline {
             steps {
                 git branch: 'dev',
                 credentialsId: 'github-token',
-                url: {REPOSITORY URL}
+                url: 'https://github.com/off-chain-storage/GoSphere.git'
             }
         }
         stage('Build') {
