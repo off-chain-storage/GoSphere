@@ -8,7 +8,7 @@ pipeline {
             steps {
                 git branch: 'dev',
                 credentialsId: 'github-token',
-                url: {REPOSITORY_URL}
+                url: {REPOSITORY URL}
             }
         }
         stage('Build') {
