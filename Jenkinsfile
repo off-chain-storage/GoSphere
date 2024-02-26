@@ -6,14 +6,13 @@ pipeline {
     stages {
         stage('Github-Clone') {
             steps {
-                git branch: 'dev',
+                git branch: 'main',
                 credentialsId: 'github-token',
                 url: 'https://github.com/off-chain-storage/GoSphere.git'
             }
         }
         stage('Build') {
             steps {
-                sh 'go version'
                 sh 'go build -o GoSphere ./cmd/GoSphere/main.go'
             }
         }
