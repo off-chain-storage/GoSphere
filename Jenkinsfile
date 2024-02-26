@@ -13,32 +13,20 @@ pipeline {
         }
         stage('Build') {
             steps {
-                script {
-                    sh """
-                        sh 'go version'
-                        sh 'go build -o GoSphere ./cmd/GoSphere/main.go'
-                    """
-                }
+                sh 'go version'
+                sh 'go build -o GoSphere ./cmd/GoSphere/main.go'
             }
         }
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh """
-                        sh 'docker image build -t jinbum99/GoSphere .'
-                    """
-                }
+                sh 'docker image build -t jinbum99/GoSphere .'
             }
         }
         stage('Push Docker Image') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'DOCKER_REGISTRY_CREDENTIALS_ID', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh """
-                            echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
-                            docker push jinbum99/GoSphere
-                        """
-                    }
+                withCredentials([usernamePassword(credentialsId: 'DOCKER_REGISTRY_CREDENTIALS_ID', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh "echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin"
+                    sh 'docker push jinbum99/GoSphere'
                 }
             }
         }
