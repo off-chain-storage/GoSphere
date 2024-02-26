@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools{
-        go 'go1.21.2'
+        go '1.21.2'
     }
     stages {
         stage('Github-Clone') {
