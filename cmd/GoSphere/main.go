@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/off-chain-storage/GoSphere/cmd"
+	"github.com/off-chain-storage/GoSphere/go-sphere/node"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
@@ -12,6 +14,9 @@ import (
 var appFlags = []cli.Flag{
 	/* Common Flag */
 	cmd.VerbosityFlag,
+
+	/* RedisDB Flag */
+	cmd.RedisDBAddrFlag,
 
 	/* Conn-Router Flag */
 	cmd.EnableConnRouterFlag,
@@ -48,7 +53,11 @@ func startSDK(ctx *cli.Context, cancel context.CancelFunc) error {
 	logrus.SetLevel(level)
 
 	// Start SDK
-	// ...
+	goSphere, err := node.New(ctx, cancel)
+	if err != nil {
+		return fmt.Errorf("unable to start GoSphere: %w", err)
+	}
 
+	goSphere.Start()
 	return nil
 }

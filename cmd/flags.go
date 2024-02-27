@@ -11,6 +11,13 @@ var (
 		Value: "info",
 	}
 
+	/* RedisDB Flag */
+	// RedisDBAddrFlag defines the address of the RedisDB.
+	RedisDBAddrFlag = &cli.StringFlag{
+		Name:  "redis-addr",
+		Usage: "Connection 라우팅 데이터베이스 (Address of the RedisDB)",
+	}
+
 	/* Conn-Router Flag */
 	// EnableConnRouterFlag defines the flag to enable the node as a connection router.
 	EnableConnRouterFlag = &cli.BoolFlag{
