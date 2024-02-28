@@ -14,6 +14,7 @@ type Config struct {
 }
 
 type Service struct {
+	started     bool
 	ctx         context.Context
 	cancel      context.CancelFunc
 	cfg         *Config
@@ -40,14 +41,30 @@ func NewRedisClient(ctx context.Context, cfg *Config) (*Service, error) {
 }
 
 func (s *Service) Start() {
+	if s.started {
+		log.Error("Attempted to start RedisDB Service when it was already started")
+		return
+	}
 
+	if s.conn == nil {
+		s.SetRedisConn()
+	}
+
+	s.started = true
 }
 
 func (s *Service) Stop() error {
 	defer s.cancel()
-	defer s.conn.Close()
+	s.started = false
 
+	defer s.conn.Close()
 	return nil
 }
 
-func (s *Service) RedisClient() redis.Client { return *s.redisClient }
+func (s *Service) Started() bool {
+	return s.started
+}
+
+func (s *Service) RedisClient() *redis.Client {
+	return s.redisClient
+}

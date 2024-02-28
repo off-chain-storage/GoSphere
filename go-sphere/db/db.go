@@ -10,6 +10,10 @@ func (s *Service) SetRedisConn() {
 	s.conn = s.redisClient.Conn()
 }
 
+func (s *Service) SetRedisClient(client *redis.Client) {
+	s.redisClient = client
+}
+
 func (s *Service) Set(key, value string) error {
 	if s.conn == nil {
 		s.SetRedisConn()
