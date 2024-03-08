@@ -20,6 +20,9 @@ var appFlags = []cli.Flag{
 
 	/* Conn-Router Flag */
 	cmd.EnableConnRouterFlag,
+
+	/* Kafka Flag */
+	cmd.KafkaBrokersFlag,
 }
 
 func main() {

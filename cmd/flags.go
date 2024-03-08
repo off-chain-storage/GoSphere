@@ -25,4 +25,11 @@ var (
 		Usage: "Connection-Router Node로 빌드 (Enable the node as a connection router)",
 		Value: false,
 	}
+
+	/* Kafka Flag */
+	// KafkaBrokersFlag defines the address of the Kafka brokers.
+	KafkaBrokersFlag = &cli.StringFlag{
+		Name:  "kafka-brokers",
+		Usage: "Kafka 브로커 주소 (쉼표로 구분, 예: 'localhost:9001,localhost:9002,localhost:9003')",
+	}
 )
