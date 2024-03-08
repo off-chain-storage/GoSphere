@@ -7,15 +7,17 @@ import (
 	"github.com/off-chain-storage/GoSphere/cmd"
 	"github.com/off-chain-storage/GoSphere/go-sphere/db"
 	"github.com/off-chain-storage/GoSphere/go-sphere/kafka"
+	regularSync "github.com/off-chain-storage/GoSphere/go-sphere/sync"
 	"github.com/off-chain-storage/GoSphere/runtime"
 	"github.com/urfave/cli/v2"
 )
 
 type GoSphereNode struct {
-	cliCtx   *cli.Context
-	ctx      context.Context
-	cancel   context.CancelFunc
-	services *runtime.ServiceRegistry
+	cliCtx              *cli.Context
+	ctx                 context.Context
+	cancel              context.CancelFunc
+	services            *runtime.ServiceRegistry
+	initialSyncComplete chan struct{}
 }
 
 func New(cliCtx *cli.Context, cancel context.CancelFunc) (*GoSphereNode, error) {
@@ -30,6 +32,8 @@ func New(cliCtx *cli.Context, cancel context.CancelFunc) (*GoSphereNode, error) 
 		services: registry,
 	}
 
+	goSphere.initialSyncComplete = make(chan struct{})
+
 	/* Register Services */
 	// Register Redis DB for propagation manager routing
 	log.Debugln("Starting Redis DB")
@@ -40,6 +44,12 @@ func New(cliCtx *cli.Context, cancel context.CancelFunc) (*GoSphereNode, error) 
 	// Register Kafka for message broker
 	log.Debugln("Starting Kafka")
 	if err := goSphere.startKafka(cliCtx); err != nil {
+		return nil, err
+	}
+
+	// Register Sync Service for Syncing
+	log.Debugln("Starting Sync Service")
+	if err := goSphere.registerSyncService(goSphere.initialSyncComplete); err != nil {
 		return nil, err
 	}
 
@@ -82,5 +92,16 @@ func (g *GoSphereNode) startKafka(cliCtx *cli.Context) error {
 	}
 
 	log.Info("Connecting to Kafka")
+	return g.services.RegisterService(svc)
+}
+
+func (g *GoSphereNode) registerSyncService(initialSyncComplete chan struct{}) error {
+	svc := regularSync.NewService(
+		g.ctx,
+		// regularSync.WithInitialSyncComplete(initialSyncComplete),
+	)
+
+	log.Info("Registering Sync Service")
+
 	return g.services.RegisterService(svc)
 }
