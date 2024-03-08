@@ -52,3 +52,15 @@ func (s *ServiceRegistry) RegisterService(service Service) error {
 	s.serviceTypes = append(s.serviceTypes, kind)
 	return nil
 }
+
+func (s *ServiceRegistry) FetchService(service interface{}) error {
+	if reflect.TypeOf(service).Kind() != reflect.Ptr {
+		return fmt.Errorf("input must be of pointer type, received value type instead: %T", service)
+	}
+	element := reflect.ValueOf(service).Elem()
+	if running, ok := s.services[element.Type()]; ok {
+		element.Set(reflect.ValueOf(running))
+		return nil
+	}
+	return fmt.Errorf("unknown service: %T", service)
+}

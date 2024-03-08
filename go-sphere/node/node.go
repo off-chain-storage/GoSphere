@@ -98,10 +98,18 @@ func (g *GoSphereNode) startKafka(cliCtx *cli.Context) error {
 func (g *GoSphereNode) registerSyncService(initialSyncComplete chan struct{}) error {
 	svc := regularSync.NewService(
 		g.ctx,
-		// regularSync.WithInitialSyncComplete(initialSyncComplete),
+		regularSync.WithInitialSyncComplete(initialSyncComplete),
 	)
 
 	log.Info("Registering Sync Service")
 
 	return g.services.RegisterService(svc)
+}
+
+func (g *GoSphereNode) fetchKafka() kafka.Kafka {
+	var k *kafka.Service
+	if err := g.services.FetchService(&k); err != nil {
+		panic(err)
+	}
+	return k
 }

@@ -1,8 +1,13 @@
 package sync
 
-import "context"
+import (
+	"context"
+
+	"github.com/off-chain-storage/GoSphere/go-sphere/kafka"
+)
 
 type config struct {
+	kafka kafka.Kafka
 }
 
 type Service struct {
