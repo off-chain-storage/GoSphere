@@ -1,19 +1,33 @@
 package kafka
 
-import "context"
+import (
+	"context"
+
+	"github.com/IBM/sarama"
+)
 
 type Kafka interface {
 	StreamProvider
-	Topic
+	TopicProvider
+	Producer
+	Consumer
 }
 
 type StreamProvider interface {
 	Broadcast([]byte) error
 }
 
-type Topic interface {
+type TopicProvider interface {
 	JoinTopic(topic string) (string, error)
 	LeaveTopic(topic string) error
 	PublishToTopic(ctx context.Context, topic string, data []byte) error
 	SubscribeToTopic(topic string) (string, error)
+}
+
+type Producer interface {
+	Producer() sarama.AsyncProducer
+}
+
+type Consumer interface {
+	Consumer() sarama.ConsumerGroup
 }

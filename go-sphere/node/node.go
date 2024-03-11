@@ -2,7 +2,11 @@ package node
 
 import (
 	"context"
+	"os"
+	"os/signal"
 	"strings"
+	"sync"
+	"syscall"
 
 	"github.com/off-chain-storage/GoSphere/cmd"
 	"github.com/off-chain-storage/GoSphere/go-sphere/db"
@@ -17,6 +21,8 @@ type GoSphereNode struct {
 	ctx                 context.Context
 	cancel              context.CancelFunc
 	services            *runtime.ServiceRegistry
+	lock                sync.RWMutex
+	stop                chan struct{}
 	initialSyncComplete chan struct{}
 }
 
@@ -29,6 +35,7 @@ func New(cliCtx *cli.Context, cancel context.CancelFunc) (*GoSphereNode, error) 
 		cliCtx:   cliCtx,
 		ctx:      ctx,
 		cancel:   cancel,
+		stop:     make(chan struct{}),
 		services: registry,
 	}
 
@@ -57,11 +64,45 @@ func New(cliCtx *cli.Context, cancel context.CancelFunc) (*GoSphereNode, error) 
 }
 
 func (g *GoSphereNode) Start() {
+	g.lock.Lock()
 
+	log.Info("Start GoSphere")
+	g.services.StartAll()
+	stop := g.stop
+
+	g.lock.Unlock()
+
+	go func() {
+		sigc := make(chan os.Signal, 1)
+		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
+		defer signal.Stop(sigc)
+		<-sigc
+
+		log.Info("Got Interrupt, shutting down...")
+
+		go g.Close()
+
+		for i := 10; i > 0; i-- {
+			<-sigc
+			if i > 1 {
+				log.WithField("times", i-1).Info("Already shutting down, interrupt more to panic")
+			}
+		}
+		panic("Panic closing the GoSphere")
+	}()
+
+	<-stop
 }
 
 func (g *GoSphereNode) Close() {
+	g.lock.Lock()
+	defer g.lock.Unlock()
 
+	log.Info("Closing GoSphere")
+	g.services.StopAll()
+	g.cancel()
+
+	close(g.stop)
 }
 
 func (g *GoSphereNode) startRedisDB(cliCtx *cli.Context) error {
@@ -98,6 +139,7 @@ func (g *GoSphereNode) startKafka(cliCtx *cli.Context) error {
 func (g *GoSphereNode) registerSyncService(initialSyncComplete chan struct{}) error {
 	svc := regularSync.NewService(
 		g.ctx,
+		regularSync.WithKafka(g.fetchKafka()),
 		regularSync.WithInitialSyncComplete(initialSyncComplete),
 	)
 

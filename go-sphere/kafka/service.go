@@ -53,3 +53,11 @@ func (s *Service) Stop() error {
 
 	return nil
 }
+
+func (s *Service) Producer() sarama.AsyncProducer {
+	return s.producer
+}
+
+func (s *Service) Consumer() sarama.ConsumerGroup {
+	return s.consumer
+}

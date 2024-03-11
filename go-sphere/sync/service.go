@@ -37,10 +37,20 @@ func NewService(ctx context.Context, opts ...Option) *Service {
 func (s *Service) Start() {
 	log.Info("Start Sync Service")
 
+	go s.registerHandlers()
 }
 
 func (s *Service) Stop() error {
 	s.cancel()
 
 	return nil
+}
+
+func (s *Service) registerHandlers() {
+	select {
+	case <-s.initialSyncComplete:
+		s.registerConsumerGroup()
+	case <-s.ctx.Done():
+		return
+	}
 }

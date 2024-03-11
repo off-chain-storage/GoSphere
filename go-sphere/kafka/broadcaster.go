@@ -10,7 +10,7 @@ func (s *Service) Broadcast(msg []byte) error {
 	*/
 
 	// Convert topic parameter when code is added
-	return s.broadcastObject(msg, "block")
+	return s.broadcastObject(msg, OriginalBlockTopicFormat)
 }
 
 func (s *Service) broadcastObject(msg []byte, topic string) error {
