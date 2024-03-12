@@ -14,13 +14,13 @@ type Kafka interface {
 }
 
 type StreamProvider interface {
-	Broadcast([]byte) error
+	Produce([]byte) error
 }
 
 type TopicProvider interface {
 	JoinTopic(topic string) (string, error)
 	LeaveTopic(topic string) error
-	PublishToTopic(ctx context.Context, topic string, data []byte) error
+	ProduceToTopic(ctx context.Context, topic string, data []byte) error
 	SubscribeToTopic(topic string) (string, error)
 }
 

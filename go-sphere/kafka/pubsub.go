@@ -29,7 +29,7 @@ func (s *Service) LeaveTopic(topic string) error {
 	return nil
 }
 
-func (s *Service) PublishToTopic(ctx context.Context, topic string, data []byte) error {
+func (s *Service) ProduceToTopic(ctx context.Context, topic string, data []byte) error {
 	topicHandle, err := s.JoinTopic(topic)
 	if err != nil {
 		return err

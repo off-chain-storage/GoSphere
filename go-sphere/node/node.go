@@ -8,9 +8,12 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/off-chain-storage/GoSphere/cmd"
 	"github.com/off-chain-storage/GoSphere/go-sphere/db"
 	"github.com/off-chain-storage/GoSphere/go-sphere/kafka"
+	"github.com/off-chain-storage/GoSphere/go-sphere/socket"
+	web "github.com/off-chain-storage/GoSphere/go-sphere/socket"
 	regularSync "github.com/off-chain-storage/GoSphere/go-sphere/sync"
 	"github.com/off-chain-storage/GoSphere/runtime"
 	"github.com/urfave/cli/v2"
@@ -44,13 +47,19 @@ func New(cliCtx *cli.Context, cancel context.CancelFunc) (*GoSphereNode, error) 
 	/* Register Services */
 	// Register Redis DB for propagation manager routing
 	log.Debugln("Starting Redis DB")
-	if err := goSphere.startRedisDB(cliCtx); err != nil {
+	if err := goSphere.registerRedisDB(cliCtx); err != nil {
 		return nil, err
 	}
 
 	// Register Kafka for message broker
 	log.Debugln("Starting Kafka")
-	if err := goSphere.startKafka(cliCtx); err != nil {
+	if err := goSphere.registerKafka(cliCtx); err != nil {
+		return nil, err
+	}
+
+	// Register Web Service for Websocket
+	log.Debugln("Starting WebSocket Service")
+	if err := goSphere.registerWebSocketService(cliCtx); err != nil {
 		return nil, err
 	}
 
@@ -105,7 +114,7 @@ func (g *GoSphereNode) Close() {
 	close(g.stop)
 }
 
-func (g *GoSphereNode) startRedisDB(cliCtx *cli.Context) error {
+func (g *GoSphereNode) registerRedisDB(cliCtx *cli.Context) error {
 	dbAddr := cliCtx.String(cmd.RedisDBAddrFlag.Name)
 
 	svc, err := db.NewRedisClient(g.ctx, &db.Config{
@@ -120,7 +129,7 @@ func (g *GoSphereNode) startRedisDB(cliCtx *cli.Context) error {
 	return g.services.RegisterService(svc)
 }
 
-func (g *GoSphereNode) startKafka(cliCtx *cli.Context) error {
+func (g *GoSphereNode) registerKafka(cliCtx *cli.Context) error {
 	kafkaBrokers := cliCtx.String(cmd.KafkaBrokersFlag.Name)
 	brokerList := strings.Split(kafkaBrokers, ",")
 
@@ -133,6 +142,24 @@ func (g *GoSphereNode) startKafka(cliCtx *cli.Context) error {
 	}
 
 	log.Info("Connecting to Kafka")
+	return g.services.RegisterService(svc)
+}
+
+func (g *GoSphereNode) registerWebSocketService(cliCtx *cli.Context) error {
+	wsAddr := cliCtx.String(cmd.WebsocketAddrFlag.Name)
+
+	svc, err := socket.NewService(g.ctx, &web.Config{
+		WsAddr: wsAddr,
+		Router: newRouter(),
+		Kafka:  g.fetchKafka(),
+	})
+	if err != nil {
+		log.WithError(err).Error("Failed to connect Web Service")
+		return err
+	}
+
+	log.Info("Registering Web Service")
+
 	return g.services.RegisterService(svc)
 }
 
@@ -154,4 +181,13 @@ func (g *GoSphereNode) fetchKafka() kafka.Kafka {
 		panic(err)
 	}
 	return k
+}
+
+func newRouter() *fiber.App {
+	return fiber.New(
+		fiber.Config{
+			WriteBufferSize: int(1.5 * 1024 * 1024), // 1.5MB
+			ReadBufferSize:  int(1.5 * 1024 * 1024), // 1.5MB
+		},
+	)
 }

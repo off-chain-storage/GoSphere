@@ -21,6 +21,9 @@ var appFlags = []cli.Flag{
 	/* Conn-Router Flag */
 	cmd.EnableConnRouterFlag,
 
+	/* Websocket Flag */
+	cmd.WebsocketAddrFlag,
+
 	/* Kafka Flag */
 	cmd.KafkaBrokersFlag,
 }

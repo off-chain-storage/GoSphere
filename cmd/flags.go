@@ -26,10 +26,17 @@ var (
 		Value: false,
 	}
 
+	/* Websocket Flag */
+	// WebsocketPortFlag defines the address of the websocket server.
+	WebsocketAddrFlag = &cli.StringFlag{
+		Name:  "websocket-port",
+		Usage: "Websocket 서버 주소 (\"localhost:8080\")",
+	}
+
 	/* Kafka Flag */
 	// KafkaBrokersFlag defines the address of the Kafka brokers.
 	KafkaBrokersFlag = &cli.StringFlag{
 		Name:  "kafka-brokers",
-		Usage: "Kafka 브로커 주소 (쉼표로 구분, 예: 'localhost:9001,localhost:9002,localhost:9003')",
+		Usage: "Kafka 브로커 주소 (쉼표로 구분, 예: \"localhost:9001,localhost:9002,localhost:9003\")",
 	}
 )

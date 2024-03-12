@@ -2,7 +2,7 @@ package kafka
 
 import "github.com/pkg/errors"
 
-func (s *Service) Broadcast(msg []byte) error {
+func (s *Service) Produce(msg []byte) error {
 	/*
 		// add topic mapping code here
 
@@ -10,10 +10,10 @@ func (s *Service) Broadcast(msg []byte) error {
 	*/
 
 	// Convert topic parameter when code is added
-	return s.broadcastObject(msg, OriginalBlockTopicFormat)
+	return s.produceObject(msg, OriginalBlockTopicFormat)
 }
 
-func (s *Service) broadcastObject(msg []byte, topic string) error {
+func (s *Service) produceObject(msg []byte, topic string) error {
 	/*
 		만약 추후에 메세지 종류가 많아질 경우,
 		메세지 종류에 따라 topic을 매핑하여 브로드캐스트 할 수 있도록 수정
@@ -21,7 +21,7 @@ func (s *Service) broadcastObject(msg []byte, topic string) error {
 		현재는 topic을 "block"으로 고정하여 브로드캐스트
 	*/
 
-	if err := s.PublishToTopic(s.ctx, topic, msg); err != nil {
+	if err := s.ProduceToTopic(s.ctx, topic, msg); err != nil {
 		err := errors.Wrap(err, "could not publish message")
 		return err
 	}
