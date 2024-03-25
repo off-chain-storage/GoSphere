@@ -1,7 +1,10 @@
 package sync
 
 import (
+	"context"
+
 	"github.com/IBM/sarama"
+	"github.com/off-chain-storage/GoSphere/go-sphere/rpc/iface"
 )
 
 var consumer = &Consumer{
@@ -9,7 +12,16 @@ var consumer = &Consumer{
 }
 
 type Consumer struct {
-	ready chan bool
+	ready  chan bool
+	router map[string]iface.Router
+}
+
+func init() {
+	consumer.router = make(map[string]iface.Router)
+}
+
+func SetRPCServerRouterInfo(endpoint string, newRouter iface.Router) {
+	consumer.router[endpoint] = newRouter
 }
 
 func GetConsumerHandler() *Consumer {
@@ -33,8 +45,15 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 				log.Error("Message channel was closed")
 				return nil
 			}
-			log.Info("Message claimed: ", string(message.Value))
+			log.Info("Received message")
 			session.MarkMessage(message, "")
+
+			// rpc/router.go 안에서
+			// SendDataToPropagationManager() 함수를
+			// 현재 gRPC Conn 유지되어있는 Router로 브로드캐스팅하는 코드 추가
+			for _, value := range consumer.router {
+				value.SendDataToPropagationManager(context.Background(), message.Value)
+			}
 
 		case <-session.Context().Done():
 			return nil

@@ -40,8 +40,9 @@ func (s *Service) consumeWithBase(ctx context.Context, topics []string, handler 
 		}
 	}
 
-	// within go routine 문제가 발생할 수 있음
+	// within go routine 문제가 발생할 수 있음 - 일단 문제 X
 	go messageLoop()
+
 	log.WithField("topics", topics).Info("Consumer started")
 	return client
 }

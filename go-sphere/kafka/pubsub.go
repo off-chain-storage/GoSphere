@@ -2,10 +2,8 @@ package kafka
 
 import (
 	"context"
-	"time"
 
 	"github.com/IBM/sarama"
-	"github.com/pkg/errors"
 )
 
 func (s *Service) JoinTopic(topic string) (string, error) {
@@ -35,20 +33,27 @@ func (s *Service) ProduceToTopic(ctx context.Context, topic string, data []byte)
 		return err
 	}
 
-	for {
-		log.WithField("topic", topic).Debug("publishing message to topic")
-		s.producer.Input() <- &sarama.ProducerMessage{
-			Topic: topicHandle,
-			Value: sarama.ByteEncoder(data),
-		}
+	log.WithField("topic", topic).Debug("publishing message to topic")
+	// s.producer.Input() <- &sarama.ProducerMessage{
+	// 	Topic: topicHandle,
+	// 	Key:   nil,
+	// 	// Value: sarama.StringEncoder("HI"),
+	// 	// 뭔가 보내는 메시지 용량과 관련있는 듯함...
+	// 	Value: sarama.ByteEncoder(data),
+	// }
 
-		select {
-		case <-ctx.Done():
-			return errors.Wrap(ctx.Err(), "unable to find requisite number of peers for topic")
-		default:
-			time.Sleep(100 * time.Millisecond)
-		}
+	_, _, err = s.producer.SendMessage(&sarama.ProducerMessage{
+		Topic: topicHandle,
+		Key:   nil,
+		Value: sarama.ByteEncoder(data),
+	})
+
+	if err != nil {
+		log.WithError(err).Error("failed to send message")
+		return err
 	}
+
+	return nil
 }
 
 // 현재 미완

@@ -26,10 +26,29 @@ var (
 		Value: false,
 	}
 
+	/* gRPC Flag */
+	// RPCAddrFlag defines the address of the gRPC server.
+	RPCAddrFlag = &cli.StringFlag{
+		Name:  "grpc-server-addr",
+		Usage: "gRPC 서버 주소 (\"localhost:8080\")",
+	}
+
+	// EndPointFlag defines the address of the gRPC server for Client.
+	EndPoint = &cli.StringFlag{
+		Name:  "endpoint",
+		Usage: "gRPC 서버 주소 (쉼표로 구분, 예: \"localhost:9001,localhost:9002,localhost:9003\")",
+	}
+
+	GrpcMaxCallRecvMsgSizeFlag = &cli.IntFlag{
+		Name:  "grpc-max-msg-size",
+		Usage: "gRPC 서버의 최대 수신 메시지 크기 (bytes)",
+		Value: 1024 * 1024 * 1024, // 1GB
+	}
+
 	/* Websocket Flag */
 	// WebsocketPortFlag defines the address of the websocket server.
 	WebsocketAddrFlag = &cli.StringFlag{
-		Name:  "websocket-port",
+		Name:  "websocket-addr",
 		Usage: "Websocket 서버 주소 (\"localhost:8080\")",
 	}
 

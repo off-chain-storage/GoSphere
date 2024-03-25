@@ -8,7 +8,8 @@ import (
 )
 
 type Config struct {
-	BrokerList []string
+	BrokerList          []string
+	InitialSyncComplete chan struct{}
 }
 
 type Service struct {
@@ -16,7 +17,7 @@ type Service struct {
 	ctx              context.Context
 	cancel           context.CancelFunc
 	cfg              *Config
-	producer         sarama.AsyncProducer
+	producer         sarama.SyncProducer
 	consumer         sarama.ConsumerGroup
 	joinedTopics     map[string]string
 	joinedTopicsLock sync.RWMutex
@@ -27,9 +28,10 @@ func NewKafkaService(ctx context.Context, cfg *Config) (*Service, error) {
 	_ = cancel
 
 	s := &Service{
-		ctx:    ctx,
-		cancel: cancel,
-		cfg:    cfg,
+		ctx:          ctx,
+		cancel:       cancel,
+		cfg:          cfg,
+		joinedTopics: make(map[string]string),
 	}
 
 	// Build Sarama Async Producer
@@ -44,6 +46,8 @@ func (s *Service) Start() {
 		return
 	}
 
+	close(s.cfg.InitialSyncComplete)
+
 	s.started = true
 }
 
@@ -54,7 +58,7 @@ func (s *Service) Stop() error {
 	return nil
 }
 
-func (s *Service) Producer() sarama.AsyncProducer {
+func (s *Service) Producer() sarama.SyncProducer {
 	return s.producer
 }
 

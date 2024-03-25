@@ -8,13 +8,14 @@ import (
 
 func (s *Service) buildProducerOptions() {
 	options := sarama.NewConfig()
-	options.Producer.RequiredAcks = sarama.WaitForAll
+	// options.Producer.RequiredAcks = sarama.WaitForAll
 	options.Producer.Retry.Max = 5
 	options.Producer.Retry.Backoff = 100 * time.Millisecond
 	options.Producer.Return.Successes = true
 	options.Producer.Return.Errors = true
+	options.Producer.MaxMessageBytes = 1024 * 1024 * 10
 
-	producer, err := sarama.NewAsyncProducer(s.cfg.BrokerList, options)
+	producer, err := sarama.NewSyncProducer(s.cfg.BrokerList, options)
 	if err != nil {
 		log.WithError(err).Error("Failed to create Kafka producer")
 		return

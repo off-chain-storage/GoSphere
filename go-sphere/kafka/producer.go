@@ -20,7 +20,6 @@ func (s *Service) produceObject(msg []byte, topic string) error {
 
 		현재는 topic을 "block"으로 고정하여 브로드캐스트
 	*/
-
 	if err := s.ProduceToTopic(s.ctx, topic, msg); err != nil {
 		err := errors.Wrap(err, "could not publish message")
 		return err

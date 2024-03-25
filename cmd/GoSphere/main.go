@@ -26,6 +26,11 @@ var appFlags = []cli.Flag{
 
 	/* Kafka Flag */
 	cmd.KafkaBrokersFlag,
+	
+	/* gRPC Flag */
+	cmd.RPCAddrFlag,
+	cmd.EndPoint,
+	cmd.GrpcMaxCallRecvMsgSizeFlag,
 }
 
 func main() {

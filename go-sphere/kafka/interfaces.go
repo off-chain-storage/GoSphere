@@ -25,7 +25,7 @@ type TopicProvider interface {
 }
 
 type Producer interface {
-	Producer() sarama.AsyncProducer
+	Producer() sarama.SyncProducer
 }
 
 type Consumer interface {

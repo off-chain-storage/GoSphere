@@ -1,16 +1,9 @@
 package socket
 
 import (
-	"sync"
-
 	"github.com/gofiber/contrib/websocket"
 	"github.com/pkg/errors"
 )
-
-type Client struct {
-	isClosing bool
-	mu        sync.Mutex
-}
 
 func (s *Service) InitMessageChannel() {
 	s.clients = make(map[*websocket.Conn]*Client)

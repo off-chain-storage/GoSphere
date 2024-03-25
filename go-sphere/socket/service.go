@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
+	"github.com/off-chain-storage/GoSphere/go-sphere/db"
 	"github.com/off-chain-storage/GoSphere/go-sphere/kafka"
 )
 
@@ -12,6 +13,7 @@ type Config struct {
 	WsAddr string
 	Router *fiber.App
 	Kafka  kafka.StreamProvider
+	DB     db.ReadOnlyRedisDB
 }
 
 type Service struct {
