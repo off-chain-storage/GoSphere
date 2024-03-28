@@ -58,4 +58,10 @@ var (
 		Name:  "kafka-brokers",
 		Usage: "Kafka 브로커 주소 (쉼표로 구분, 예: \"localhost:9001,localhost:9002,localhost:9003\")",
 	}
+
+	// KafkaGroupIDFlag defines the Kafka Consumer Group ID.
+	KafkaGroupIDFlag = &cli.StringFlag{
+		Name:  "kafka-group-id",
+		Usage: "Kafka Consumer Group ID",
+	}
 )

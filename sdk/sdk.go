@@ -47,13 +47,18 @@ func startPropagationModule(pmAddr string) {
 	defer cancel()
 
 	// Dial to Propagation Module
-	dialer := websocket.Dialer{}
+	dialer := websocket.Dialer{
+		ReadBufferSize:  1024 * 1024 * 1.5,
+		WriteBufferSize: 1024 * 1024 * 1.5,
+	}
 
 	conn, _, err = dialer.Dial(pmAddr, nil)
 	if err != nil {
 		log.Error("failed to dial to propagation module: ", err)
 		return
 	}
+
+	conn.SetReadLimit(1024 * 1024 * 2)
 
 	// Start the message sending loop
 	wg.Add(1)
@@ -117,7 +122,7 @@ func readMessage(cxt context.Context) {
 }
 
 func loadConfig() (c *Config, err error) {
-	viper.AddConfigPath("./envs")
+	viper.AddConfigPath("../../")
 	viper.SetConfigName("dev")
 	viper.SetConfigType("env")
 
