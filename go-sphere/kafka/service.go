@@ -9,6 +9,7 @@ import (
 
 type Config struct {
 	BrokerList          []string
+	GroupID             string
 	InitialSyncComplete chan struct{}
 }
 

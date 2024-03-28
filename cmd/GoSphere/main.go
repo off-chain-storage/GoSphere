@@ -26,7 +26,8 @@ var appFlags = []cli.Flag{
 
 	/* Kafka Flag */
 	cmd.KafkaBrokersFlag,
-	
+	cmd.KafkaGroupIDFlag,
+
 	/* gRPC Flag */
 	cmd.RPCAddrFlag,
 	cmd.EndPoint,

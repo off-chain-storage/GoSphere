@@ -156,10 +156,12 @@ func (g *GoSphereNode) registerRedisDB(cliCtx *cli.Context) error {
 func (g *GoSphereNode) registerKafka(cliCtx *cli.Context, complete chan struct{}) error {
 	kafkaBrokers := cliCtx.String(cmd.KafkaBrokersFlag.Name)
 	brokerList := strings.Split(kafkaBrokers, ",")
+	groupId := cliCtx.String(cmd.KafkaGroupIDFlag.Name)
 
 	svc, err := kafka.NewKafkaService(g.ctx, &kafka.Config{
 		BrokerList:          brokerList,
 		InitialSyncComplete: complete,
+		GroupID:             groupId,
 	})
 	if err != nil {
 		log.WithError(err).Error("Failed to connect Kafka")
