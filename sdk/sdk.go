@@ -15,6 +15,8 @@ type Config struct {
 
 /* Variables about */
 // Propagation Manager
+var err error
+var conn *websocket.Conn
 
 // Message Write & Read Channel
 var msgSenderChan chan []byte
@@ -35,6 +37,7 @@ func SetupPropagationModule() {
 	// Set up Propagation Module
 	pmAddr := c.Path
 	msgSenderChan = make(chan []byte)
+	msgReceiverChan = make(chan []byte)
 
 	startPropagationModule(pmAddr)
 }
@@ -46,7 +49,7 @@ func startPropagationModule(pmAddr string) {
 	// Dial to Propagation Module
 	dialer := websocket.Dialer{}
 
-	conn, _, err := dialer.Dial(pmAddr, nil)
+	conn, _, err = dialer.Dial(pmAddr, nil)
 	if err != nil {
 		log.Error("failed to dial to propagation module: ", err)
 		return
@@ -56,14 +59,14 @@ func startPropagationModule(pmAddr string) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		messageLoop(ctx, conn)
+		messageLoop(ctx)
 	}()
 
 	wg.Wait()
 	conn.Close()
 }
 
-func messageLoop(ctx context.Context, conn *websocket.Conn) {
+func messageLoop(ctx context.Context) {
 	for {
 		select {
 		case data := <-msgSenderChan:
@@ -83,13 +86,13 @@ func WriteMessage(msg []byte) {
 }
 
 // Read Message
-func ReadMessage(ctx context.Context, conn *websocket.Conn) chan []byte {
-	go readMessage(ctx, conn)
+func ReadMessage(ctx context.Context) chan []byte {
+	go readMessage(ctx)
 
 	return msgReceiverChan
 }
 
-func readMessage(cxt context.Context, conn *websocket.Conn) {
+func readMessage(cxt context.Context) {
 	for {
 		select {
 		case <-cxt.Done():
