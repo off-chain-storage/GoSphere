@@ -21,7 +21,7 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# Environment variables file
+# Environment variables files
 .env
 
 # Go workspace file
