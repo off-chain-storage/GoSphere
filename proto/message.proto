@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package gosphere;
+
+option go_package = "github.com/off-chain-storage/GoSphere/proto";
+
+message BlockData {
+    bytes data = 1;
+}
+
+message Response {
+    string message = 1;
+}
