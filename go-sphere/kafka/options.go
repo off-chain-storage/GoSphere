@@ -13,7 +13,8 @@ func (s *Service) buildProducerOptions() {
 	options.Producer.Retry.Backoff = 100 * time.Millisecond
 	options.Producer.Return.Successes = true
 	options.Producer.Return.Errors = true
-	options.Producer.MaxMessageBytes = 1024 * 1024
+	options.Producer.MaxMessageBytes = 1024 * 1024 * 10
+	// options.Producer.Compression = sarama.CompressionSnappy
 
 	producer, err := sarama.NewSyncProducer(s.cfg.BrokerList, options)
 	if err != nil {
