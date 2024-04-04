@@ -52,7 +52,9 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 			// SendDataToPropagationManager() 함수를
 			// 현재 gRPC Conn 유지되어있는 Router로 브로드캐스팅하는 코드 추가
 			for _, value := range consumer.router {
-				value.SendDataToPropagationManager(context.Background(), message.Value)
+				go func(v iface.Router) {
+					v.SendDataToPropagationManager(context.Background(), message.Value)
+				}(value)
 			}
 
 		case <-session.Context().Done():
