@@ -1,142 +1,133 @@
 package sdk
 
-import (
-	"context"
-	"sync"
+// func SetupPropagationModule(ctx context.Context) (*Subscription, error) {
+// 	log.Info("Make Connection with Propagation Module...")
 
-	"github.com/gorilla/websocket"
-	"github.com/spf13/viper"
-)
+// 	// Load Config
+// 	c, err := loadConfig()
+// 	if err != nil {
+// 		log.Error("failed to load config: ", err)
+// 		return nil, err
+// 	}
 
-// env Config Structure
-type Config struct {
-	Path string `mapstructure:"PM_ADDR"`
-}
+// 	dialer := websocket.Dialer{
+// 		ReadBufferSize:  1024 * 1024 * 1.5,
+// 		WriteBufferSize: 1024 * 1024 * 1.5,
+// 	}
 
-/* Variables about */
-// Propagation Manager
-var err error
-var conn *websocket.Conn
+// 	conn, _, err := dialer.Dial(c.Path, nil)
+// 	if err != nil {
+// 		log.Error("failed to dial to propagation module: ", err)
+// 		return nil, err
+// 	}
 
-// Message Write & Read Channel
-var msgSenderChan chan []byte
-var msgReceiverChan chan []byte
+// 	sub := &Subscription{
+// 		conn: conn,
+// 		ctx:  ctx,
+// 	}
 
-var wg sync.WaitGroup
+// 	if sub.ch == nil {
+// 		sub.ch = make(chan *Message, 32)
+// 	}
 
-func SetupPropagationModule() {
-	log.Info("Setting up Propagation Module...")
+// 	out := make(chan *Subscription, 1)
 
-	// Load Config
-	c, err := loadConfig()
-	if err != nil {
-		log.Error("failed to load config: ", err)
-		return
-	}
+// 	log.Info("Make Connection with Propagation Module... Done")
+// 	return <-out, nil
+// }
 
-	// Set up Propagation Module
-	pmAddr := c.Path
-	msgSenderChan = make(chan []byte)
-	msgReceiverChan = make(chan []byte)
+// func startPropagationModule(pmAddr string) {
+// 	ctx, cancel := context.WithCancel(context.Background())
+// 	defer cancel()
 
-	startPropagationModule(pmAddr)
-}
+// 	// Dial to Propagation Module
+// 	dialer = websocket.Dialer{
+// 		ReadBufferSize:  1024 * 1024 * 1.5,
+// 		WriteBufferSize: 1024 * 1024 * 1.5,
+// 	}
 
-func startPropagationModule(pmAddr string) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+// 	conn, _, err := dialer.Dial(pmAddr, nil)
+// 	if err != nil {
+// 		log.Error("failed to dial to propagation module: ", err)
+// 		return
+// 	}
 
-	// Dial to Propagation Module
-	dialer := websocket.Dialer{
-		ReadBufferSize:  1024 * 1024 * 1.5,
-		WriteBufferSize: 1024 * 1024 * 1.5,
-	}
+// 	conn.SetReadLimit(1024 * 1024 * 2)
 
-	conn, _, err = dialer.Dial(pmAddr, nil)
-	if err != nil {
-		log.Error("failed to dial to propagation module: ", err)
-		return
-	}
+// 	// Start the message sending loop
+// 	go func() {
+// 		messageLoop(ctx, conn)
+// 	}()
 
-	conn.SetReadLimit(1024 * 1024 * 2)
+// 	log.Info("Connection with Propagation Module is established")
+// }
 
-	// Start the message sending loop
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		messageLoop(ctx)
-	}()
+// func messageLoop(ctx context.Context, conn *websocket.Conn) {
+// 	for {
+// 		select {
+// 		// case <-ctx.Done():
+// 		// 	return
 
-	wg.Wait()
-	conn.Close()
-}
+// 		case data := <-msgSenderChan:
+// 			log.Info("hi")
+// 			if err := conn.WriteMessage(websocket.BinaryMessage, data); err != nil {
+// 				log.Errorf("Failed to write message to propagation module: %v", err)
+// 				log.Info("HI")
+// 				return
+// 			}
+// 			log.Info("Message Sent")
 
-func messageLoop(ctx context.Context) {
-	for {
-		select {
-		case data := <-msgSenderChan:
-			if err := conn.WriteMessage(websocket.BinaryMessage, data); err != nil {
-				log.Errorf("Failed to write message to propagation module: %v", err)
-				return
-			}
-		case <-ctx.Done():
-			return
-		}
-	}
-}
+// 		default:
+// 			log.Info("Waiting for message to send...")
+// 			msgType, msgData, err := conn.ReadMessage()
+// 			if err != nil {
+// 				log.Error("ReadMessage error:", err)
+// 				return
+// 			}
 
-// Write Message
-func WriteMessage(msg []byte) {
-	msgSenderChan <- msg
-}
+// 			log.Info("Message Received")
 
-// Read Message
-func ReadMessage(ctx context.Context) chan []byte {
-	go readMessage(ctx)
+// 			if msgType == websocket.BinaryMessage {
+// 				msgReceiverChan <- msgData
+// 			} else {
+// 				log.Error("Received message is not validated")
+// 			}
+// 		}
+// 	}
+// }
 
-	return msgReceiverChan
-}
+// // Write Message
+// func WriteMessage(msg []byte) {
+// 	msgSenderChan <- msg
+// }
 
-func readMessage(cxt context.Context) {
-	for {
-		select {
-		case <-cxt.Done():
-			return
+// // Read Message
+// func ReadMessage(ctx context.Context) chan []byte {
+// 	// go readMessage(ctx)
 
-		default:
-			msgType, msgData, err := conn.ReadMessage()
-			if err != nil {
-				log.Println("ReadMessage error:", err)
-				return
-			}
+// 	return msgReceiverChan
+// }
 
-			log.Info("Message Received")
+// func readMessage(cxt context.Context) {
+// 	for {
+// 		select {
+// 		case <-cxt.Done():
+// 			return
 
-			if msgType == websocket.BinaryMessage {
-				msgReceiverChan <- msgData
-			} else {
-				log.Error("Received message is not validated")
-			}
-		}
-	}
-}
+// 		default:
+// 			msgType, msgData, err := conn.ReadMessage()
+// 			if err != nil {
+// 				log.Error("ReadMessage error:", err)
+// 				return
+// 			}
 
-func loadConfig() (c *Config, err error) {
-	viper.AddConfigPath("../../")
-	viper.SetConfigName("dev")
-	viper.SetConfigType("env")
+// 			log.Info("Message Received")
 
-	err = viper.ReadInConfig()
-	if err != nil {
-		log.Error("failed to read config file: ", err)
-		return nil, err
-	}
-
-	err = viper.Unmarshal(&c)
-	if err != nil {
-		log.Error("failed to unmarshal config: ", err)
-		return nil, err
-	}
-
-	return c, nil
-}
+// 			if msgType == websocket.BinaryMessage {
+// 				msgReceiverChan <- msgData
+// 			} else {
+// 				log.Error("Received message is not validated")
+// 			}
+// 		}
+// 	}
+// }
