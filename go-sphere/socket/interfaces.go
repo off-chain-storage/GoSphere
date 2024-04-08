@@ -4,6 +4,7 @@ import "github.com/gofiber/contrib/websocket"
 
 type Socket interface {
 	Broadcaster
+	Acknowledgement
 	ClientManager
 	MsgProcessor
 	ConnectionManager
@@ -11,6 +12,10 @@ type Socket interface {
 
 type Broadcaster interface {
 	Broadcast([]byte)
+}
+
+type Acknowledgement interface {
+	SendUDPMessage(int, string) error
 }
 
 type ClientManager interface {

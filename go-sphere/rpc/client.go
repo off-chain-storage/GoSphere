@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"net"
 
 	"github.com/off-chain-storage/GoSphere/go-sphere/db"
 	grpcapi "github.com/off-chain-storage/GoSphere/go-sphere/rpc/grpc-api"
@@ -23,6 +24,10 @@ type ClientService struct {
 	cfg    *ClientConfig
 	router map[string]iface.Router
 	conns  map[string]helpers.NodeConnection
+
+	// UDP Server - temp service
+	udpServer *net.UDPAddr
+	conn      *net.UDPConn
 }
 
 func NewClient(ctx context.Context, cfg *ClientConfig) *ClientService {
@@ -59,7 +64,44 @@ func NewClient(ctx context.Context, cfg *ClientConfig) *ClientService {
 		return nil
 	}
 
+	// UDP Server - temp service
+	if err := cs.buildUDPAddr(); err != nil {
+		log.WithError(err).Fatal("Could not build UDP address")
+	}
+
+	if err := cs.Conn(); err != nil {
+		log.WithError(err).Fatal("Could not start UDP listener")
+	}
+
 	return cs
+}
+
+func (cs *ClientService) buildUDPAddr() error {
+	udpServer, err := net.ResolveUDPAddr("udp4", "43.200.145.206:30006")
+	if err != nil {
+		return err
+	}
+
+	cs.udpServer = udpServer
+	return nil
+}
+
+func (cs *ClientService) Conn() error {
+	conn, err := net.DialUDP("udp4", nil, cs.udpServer)
+	if err != nil {
+		return err
+	}
+	cs.conn = conn
+	return nil
+}
+
+func (cs *ClientService) SendUDPMessage(msg string) error {
+	_, err := cs.conn.Write([]byte(msg + "\n"))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (cs *ClientService) Start() {
@@ -68,6 +110,7 @@ func (cs *ClientService) Start() {
 
 		routerStruct := &router{
 			routerClient: routerClient,
+			cs:           cs,
 		}
 
 		cs.router[endpoint] = routerStruct

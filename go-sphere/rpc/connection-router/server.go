@@ -15,7 +15,9 @@ type Router struct {
 func (cr *Router) SendDataToPropagationManager(ctx context.Context, req *spherePB.BlockData) (*spherePB.Response, error) {
 	log.Info("Received Block Data Request from Connection Router")
 
-	// 여기에 데이터 자기가 물고 있는 Propagation Manager로 전파하는 코드 추가
+	// Send Acknowledgement for time measurement - temp service
+	cr.Socket.SendUDPMessage(2, "Receive data from C-R")
+
 	cr.Socket.Broadcast(req.Data)
 
 	return &spherePB.Response{
