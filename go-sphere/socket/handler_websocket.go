@@ -13,7 +13,7 @@ func (s *Service) wsHandler(c *websocket.Conn) {
 
 	for {
 		messageType, message, err := c.ReadMessage()
-		s.SendUDPMessage(1, "Received message from blockchain node")
+		go s.SendUDPMessage(1, "Received message from blockchain node")
 
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
