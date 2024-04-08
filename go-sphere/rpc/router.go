@@ -21,7 +21,7 @@ func (r *router) SendDataToPropagationManager(ctx context.Context, blockData []b
 	}
 
 	// Send Acknowledgement for time measurement - temp service
-	r.cs.SendUDPMessage("Data sent to P-M from C-R")
+	go r.cs.SendUDPMessage("Data sent to P-M from C-R")
 
 	_, err = r.routerClient.SendDataToPropagationManager(ctx, blk)
 	if err != nil {

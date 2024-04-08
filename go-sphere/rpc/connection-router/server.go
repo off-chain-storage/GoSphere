@@ -16,7 +16,7 @@ func (cr *Router) SendDataToPropagationManager(ctx context.Context, req *sphereP
 	log.Info("Received Block Data Request from Connection Router")
 
 	// Send Acknowledgement for time measurement - temp service
-	cr.Socket.SendUDPMessage(2, "Receive data from C-R")
+	go cr.Socket.SendUDPMessage(2, "Receive data from C-R")
 
 	cr.Socket.Broadcast(req.Data)
 
