@@ -20,7 +20,7 @@ func (s *Subscription) ReadMessage(ctx context.Context) (*Message, error) {
 	select {
 	case msg, ok := <-s.ch:
 		if !ok {
-			return msg, s.err
+			return nil, s.err
 		}
 
 		return msg, nil

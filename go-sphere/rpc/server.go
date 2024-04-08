@@ -4,7 +4,7 @@ import (
 	"context"
 	"net"
 
-	connrouter "github.com/off-chain-storage/GoSphere/go-sphere/rpc/connection-router"
+	connRouter "github.com/off-chain-storage/GoSphere/go-sphere/rpc/connection-router"
 	"github.com/off-chain-storage/GoSphere/go-sphere/socket"
 	spherePB "github.com/off-chain-storage/GoSphere/proto"
 	"google.golang.org/grpc"
@@ -56,7 +56,7 @@ func NewServer(ctx context.Context, cfg *ServerConfig) *ServerService {
 }
 
 func (rs *ServerService) Start() {
-	connectionRouter := &connrouter.Router{
+	connectionRouter := &connRouter.Router{
 		Ctx:    rs.ctx,
 		Socket: rs.cfg.Socket,
 	}

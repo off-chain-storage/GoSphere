@@ -9,6 +9,7 @@ import (
 
 type router struct {
 	routerClient iface.RouterClient
+	cs           *ClientService
 }
 
 func (r *router) SendDataToPropagationManager(ctx context.Context, blockData []byte) error {
@@ -18,6 +19,9 @@ func (r *router) SendDataToPropagationManager(ctx context.Context, blockData []b
 		log.Error("Failed to build block data")
 		return err
 	}
+
+	// Send Acknowledgement for time measurement - temp service
+	r.cs.SendUDPMessage("Data sent to P-M from C-R")
 
 	_, err = r.routerClient.SendDataToPropagationManager(ctx, blk)
 	if err != nil {
