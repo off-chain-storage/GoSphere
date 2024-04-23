@@ -4,7 +4,7 @@ import (
 	"context"
 	"net"
 
-	connRouter "github.com/off-chain-storage/GoSphere/go-sphere/rpc/connection-router"
+	propaManager "github.com/off-chain-storage/GoSphere/go-sphere/rpc/propagation-manager"
 	"github.com/off-chain-storage/GoSphere/go-sphere/socket"
 	spherePB "github.com/off-chain-storage/GoSphere/proto"
 	"google.golang.org/grpc"
@@ -26,6 +26,7 @@ type ServerService struct {
 	grpcClient map[net.Addr]bool
 }
 
+// NewServer creates a new gRPC server - Propagation Manager gRPC Server
 func NewServer(ctx context.Context, cfg *ServerConfig) *ServerService {
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -56,13 +57,11 @@ func NewServer(ctx context.Context, cfg *ServerConfig) *ServerService {
 }
 
 func (rs *ServerService) Start() {
-	connectionRouter := &connRouter.Router{
+	propagationManagerServer := &propaManager.Manager{
 		Ctx:    rs.ctx,
 		Socket: rs.cfg.Socket,
 	}
-
-	spherePB.RegisterConnectionRouterServer(rs.grpcServer, connectionRouter)
-
+	spherePB.RegisterPropagationManagerServer(rs.grpcServer, propagationManagerServer)
 	reflection.Register(rs.grpcServer)
 
 	go func() {

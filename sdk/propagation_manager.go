@@ -125,10 +125,19 @@ func (pm *PManager) readMessage() {
 			return
 
 		default:
+			log.Info("ERROR 01")
 			msgType, msgData, err := pm.conn.ReadMessage()
+			log.Info("ERROR 02")
 			if err != nil {
-				log.Error("ReadMessage error:", err)
-				return
+				if !websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure) {
+					log.Info("ERROR 1")
+				} else if !websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
+					log.Info("ERROR 2")
+				} else {
+					log.Errorf("ReadMessage error: %v", err)
+					log.Info("ERROR 3")
+					return
+				}
 			}
 
 			if msgType == websocket.BinaryMessage {
@@ -141,7 +150,6 @@ func (pm *PManager) readMessage() {
 						log.Error("Failed to send message to subscriber")
 					}
 				}
-
 			} else {
 				log.Error("Received message is not proper type")
 			}

@@ -19,26 +19,27 @@ type ClientConfig struct {
 }
 
 type ClientService struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-	cfg    *ClientConfig
-	router map[string]iface.Router
-	conns  map[string]helpers.NodeConnection
+	ctx     context.Context
+	cancel  context.CancelFunc
+	cfg     *ClientConfig
+	manager map[string]iface.ManagerServer
+	conns   map[string]helpers.NodeConnection
 
 	// UDP Server - temp service
 	udpServer *net.UDPAddr
 	conn      *net.UDPConn
 }
 
+// NewClient creates a new gRPC client - Connection Router gRPC Client
 func NewClient(ctx context.Context, cfg *ClientConfig) *ClientService {
 	ctx, cancel := context.WithCancel(ctx)
 
 	cs := &ClientService{
-		ctx:    ctx,
-		cancel: cancel,
-		cfg:    cfg,
-		router: make(map[string]iface.Router),
-		conns:  make(map[string]helpers.NodeConnection),
+		ctx:     ctx,
+		cancel:  cancel,
+		cfg:     cfg,
+		manager: make(map[string]iface.ManagerServer),
+		conns:   make(map[string]helpers.NodeConnection),
 	}
 
 	dialOpts := ConstructDialOptions(cs.cfg.MaxMsgSize)
@@ -106,15 +107,15 @@ func (cs *ClientService) SendUDPMessage(msg string) error {
 
 func (cs *ClientService) Start() {
 	for _, endpoint := range cs.cfg.Endpoints {
-		routerClient := grpcapi.NewGrpcRouterClient(cs.conns[endpoint].GetGrpcClientConn())
+		crClient := grpcapi.NewGrpcRouterClient(cs.conns[endpoint].GetGrpcClientConn())
 
-		routerStruct := &router{
-			routerClient: routerClient,
-			cs:           cs,
+		managerStruct := &router{ // router means P-M gRPC client
+			client:        crClient,
+			clientService: cs,
 		}
 
-		cs.router[endpoint] = routerStruct
-		sync.SetRPCServerRouterInfo(endpoint, routerStruct)
+		cs.manager[endpoint] = managerStruct
+		sync.SetRPCServerRouterInfo(endpoint, managerStruct)
 	}
 }
 
