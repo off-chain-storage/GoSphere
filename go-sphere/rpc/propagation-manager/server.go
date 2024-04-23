@@ -16,9 +16,6 @@ type Manager struct {
 func (pm *Manager) SendDataToPropagationManager(stream spherePB.PropagationManager_SendDataToPropagationManagerServer) error {
 	log.Info("Received Block Data Request from Connection Router")
 
-	// Send Acknowledgement for time measurement - temp service
-	go pm.Socket.SendUDPMessage(2, "Receive data from C-R")
-
 	var tempBlockData []byte
 	for {
 		req, err := stream.Recv()
@@ -29,6 +26,9 @@ func (pm *Manager) SendDataToPropagationManager(stream spherePB.PropagationManag
 
 		tempBlockData = append(tempBlockData, req.Data...)
 		if req.IsLast {
+			// Send Acknowledgement for time measurement - temp service
+			go pm.Socket.SendUDPMessage(2, "Receive data from C-R")
+
 			pm.Socket.Broadcast(tempBlockData)
 			return stream.SendAndClose(&spherePB.Response{
 				Message: "Successfully Send Block Data",
