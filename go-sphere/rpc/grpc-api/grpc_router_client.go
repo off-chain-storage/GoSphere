@@ -9,13 +9,13 @@ import (
 )
 
 type grpcRouterClient struct {
-	routerClient spherePB.ConnectionRouterClient
+	routerClient spherePB.PropagationManagerClient
 }
 
-func (c *grpcRouterClient) SendDataToPropagationManager(ctx context.Context, in *spherePB.BlockData) (*spherePB.Response, error) {
-	return c.routerClient.SendDataToPropagationManager(ctx, in)
+func (c *grpcRouterClient) SendDataToPropagationManager(ctx context.Context) (spherePB.PropagationManager_SendDataToPropagationManagerClient, error) {
+	return c.routerClient.SendDataToPropagationManager(ctx)
 }
 
 func NewGrpcRouterClient(cc grpc.ClientConnInterface) iface.RouterClient {
-	return &grpcRouterClient{spherePB.NewConnectionRouterClient(cc)}
+	return &grpcRouterClient{spherePB.NewPropagationManagerClient(cc)}
 }

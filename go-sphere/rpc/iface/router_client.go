@@ -7,5 +7,5 @@ import (
 )
 
 type RouterClient interface {
-	SendDataToPropagationManager(ctx context.Context, in *spherePB.BlockData) (*spherePB.Response, error)
+	SendDataToPropagationManager(ctx context.Context) (spherePB.PropagationManager_SendDataToPropagationManagerClient, error)
 }

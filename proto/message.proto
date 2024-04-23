@@ -6,6 +6,7 @@ option go_package = "github.com/off-chain-storage/GoSphere/proto";
 
 message BlockData {
     bytes data = 1;
+    bool IsLast = 2;
 }
 
 message Response {

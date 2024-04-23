@@ -12,16 +12,16 @@ var consumer = &Consumer{
 }
 
 type Consumer struct {
-	ready  chan bool
-	router map[string]iface.Router
+	ready   chan bool
+	manager map[string]iface.ManagerServer
 }
 
 func init() {
-	consumer.router = make(map[string]iface.Router)
+	consumer.manager = make(map[string]iface.ManagerServer)
 }
 
-func SetRPCServerRouterInfo(endpoint string, newRouter iface.Router) {
-	consumer.router[endpoint] = newRouter
+func SetRPCServerRouterInfo(endpoint string, newManager iface.ManagerServer) {
+	consumer.manager[endpoint] = newManager
 }
 
 func GetConsumerHandler() *Consumer {
@@ -51,8 +51,8 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 			// rpc/router.go 안에서
 			// SendDataToPropagationManager() 함수를
 			// 현재 gRPC Conn 유지되어있는 Router로 브로드캐스팅하는 코드 추가
-			for _, value := range consumer.router {
-				go func(v iface.Router) {
+			for _, value := range consumer.manager {
+				go func(v iface.ManagerServer) {
 					v.SendDataToPropagationManager(context.Background(), message.Value)
 				}(value)
 			}
