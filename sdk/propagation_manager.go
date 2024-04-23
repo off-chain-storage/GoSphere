@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"context"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
@@ -73,30 +74,6 @@ func (pm *PManager) Subscribe() (*Subscription, error) {
 	return <-out, nil
 }
 
-func (pm *PManager) dialToPropagationManager() error {
-	c, err := loadConfig()
-	if err != nil {
-		log.Error("failed to load config: ", err)
-		return err
-	}
-	pm.pmAddr = c.Path
-
-	dialer := websocket.Dialer{
-		ReadBufferSize:  1024 * 1024 * 2, // 2MB
-		WriteBufferSize: 1024 * 1024 * 2, // 2MB
-	}
-
-	conn, _, err := dialer.Dial(pm.pmAddr, nil)
-	if err != nil {
-		log.Error("failed to dial to propagation module: ", err)
-		return err
-	}
-
-	pm.conn = conn
-
-	return nil
-}
-
 func (pm *PManager) processPManager(ctx context.Context) {
 	for {
 		select {
@@ -118,6 +95,37 @@ func (pm *PManager) processPManager(ctx context.Context) {
 	}
 }
 
+func (pm *PManager) dialToPropagationManager() error {
+	return pm.tryDial(0, 3)
+}
+
+func (pm *PManager) tryDial(attempt int, maxAttempts int) error {
+	c, err := loadConfig()
+	if err != nil {
+		log.Println("failed to load config: ", err)
+		return err
+	}
+	pm.pmAddr = c.Path
+
+	dialer := websocket.Dialer{
+		ReadBufferSize:  1024 * 1024 * 2, // 2MB
+		WriteBufferSize: 1024 * 1024 * 2, // 2MB
+	}
+
+	conn, _, err := dialer.Dial(pm.pmAddr, nil)
+	if err != nil {
+		log.Errorf("failed to dial to propagation module: %v", err)
+		if attempt < maxAttempts {
+			time.Sleep(1 * time.Second)
+			return pm.tryDial(attempt+1, maxAttempts)
+		}
+		return err
+	}
+
+	pm.conn = conn
+	return nil
+}
+
 func (pm *PManager) readMessage() {
 	for {
 		select {
@@ -125,17 +133,19 @@ func (pm *PManager) readMessage() {
 			return
 
 		default:
-			log.Info("ERROR 01")
 			msgType, msgData, err := pm.conn.ReadMessage()
-			log.Info("ERROR 02")
 			if err != nil {
-				if !websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure) {
-					log.Info("ERROR 1")
-				} else if !websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-					log.Info("ERROR 2")
+				if websocket.IsCloseError(err, 1006) {
+					for {
+						if err := pm.dialToPropagationManager(); err == nil {
+							log.Info("Reconnection successful.")
+							break
+						}
+
+						time.Sleep(1 * time.Second)
+					}
 				} else {
-					log.Errorf("ReadMessage error: %v", err)
-					log.Info("ERROR 3")
+					log.Printf("ReadMessage error: %v", err)
 					return
 				}
 			}
@@ -150,8 +160,6 @@ func (pm *PManager) readMessage() {
 						log.Error("Failed to send message to subscriber")
 					}
 				}
-			} else {
-				log.Error("Received message is not proper type")
 			}
 		}
 	}
@@ -185,4 +193,13 @@ func (pm *PManager) handleRemoveSubscription(sub *Subscription) {
 	sub.close()
 
 	delete(pm.mySubs, sub)
+}
+
+func (pm *PManager) reConnection() error {
+	if err := pm.dialToPropagationManager(); err == nil {
+		log.Info("Success to reconnected w/propagation module")
+		return nil
+	} else {
+		return err
+	}
 }
