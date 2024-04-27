@@ -30,7 +30,7 @@ func (r *router) SendDataToPropagationManager(ctx context.Context, blockData []b
 		return err
 	}
 
-	chunkSize := 1024 * 256
+	chunkSize := 1024 * 512
 	chunks := chunkByteSlice(blk.Data, chunkSize)
 
 	tempBlock := spherePB.BlockData{}
@@ -38,6 +38,8 @@ func (r *router) SendDataToPropagationManager(ctx context.Context, blockData []b
 		tempBlock.Data = chunk
 		if i == len(chunks)-1 {
 			tempBlock.IsLast = true
+		} else {
+			tempBlock.IsLast = false
 		}
 
 		if err := stream.Send(&tempBlock); err != nil {
