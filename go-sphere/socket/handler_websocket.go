@@ -16,16 +16,23 @@ func (s *Service) wsHandler(c *websocket.Conn) {
 		go s.SendUDPMessage(1, "Received message from blockchain node")
 
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Error("read error:", err)
+			switch {
+			case websocket.IsCloseError(err, websocket.CloseNormalClosure):
+				return
+
+			case websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure):
+				log.Errorf("Unexpected WebSocket close error: %v", err)
+				return
+
+			default:
+				log.Errorf("WebSocket read error: %v", err)
+				return
 			}
-			return
 		}
 
+		// Send block data to Kafka
 		if messageType == websocket.BinaryMessage {
-			// Send block data to Kafka
 			s.propose <- message
-
 		} else {
 			log.Error("websocket message received of type", messageType)
 		}

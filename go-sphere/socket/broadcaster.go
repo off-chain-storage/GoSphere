@@ -12,7 +12,7 @@ func (s *Service) Broadcast(msgData []byte) {
 			}
 			if err := connection.WriteMessage(websocket.BinaryMessage, msgData); err != nil {
 				c.isClosing = true
-				log.Println("write error:", err)
+				log.Error("write error:", err)
 
 				connection.WriteMessage(websocket.CloseMessage, []byte{})
 				connection.Close()
