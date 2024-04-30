@@ -108,8 +108,8 @@ func (pm *PManager) tryDial(attempt int, maxAttempts int) error {
 	pm.pmAddr = c.Path
 
 	dialer := websocket.Dialer{
-		ReadBufferSize:  1024 * 1024 * 2, // 2MB
-		WriteBufferSize: 1024 * 1024 * 2, // 2MB
+		ReadBufferSize:  1024 * 1024 * 20, // 2MB
+		WriteBufferSize: 1024 * 1024 * 20, // 2MB
 	}
 
 	conn, _, err := dialer.Dial(pm.pmAddr, nil)
