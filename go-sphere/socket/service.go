@@ -66,13 +66,13 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 }
 
 func (s *Service) buildUDPAddr() error {
-	udpServer_1, err := net.ResolveUDPAddr("udp4", "43.200.145.206:30004")
+	udpServer_1, err := net.ResolveUDPAddr("udp4", "3.35.85.78:30004")
 	if err != nil {
 		return err
 	}
 	s.udpServer_1 = udpServer_1
 
-	udpServer_2, err := net.ResolveUDPAddr("udp4", "43.200.145.206:30006")
+	udpServer_2, err := net.ResolveUDPAddr("udp4", "3.35.85.78:30006")
 	if err != nil {
 		return err
 	}
